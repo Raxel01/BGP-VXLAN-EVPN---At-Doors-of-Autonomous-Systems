@@ -1,38 +1,33 @@
-FROM ubuntu:22.04
-ENV DEBIAN_FRONTEND=noninteractive
+FROM alpine:3.19
 
-# Step 1: Update package list
-RUN apt-get update \
- && rm -rf /var/lib/apt/lists/*
+# Install FRR + base tools (all in one layer, no apt mess)
+RUN apk add --no-cache \
+    frr \
+    busybox \
+    iproute2 \
+    iputils \
+    bash
 
-# Step 2: Install busybox
-RUN apt-get update \
- && apt-get install -y --no-install-recommends busybox \
- && rm -rf /var/lib/apt/lists/*
+# Enable required daemons
+RUN sed -i \
+    -e 's/^zebra=no/zebra=yes/' \
+    -e 's/^bgpd=no/bgpd=yes/' \
+    -e 's/^ospfd=no/ospfd=yes/' \
+    -e 's/^isisd=no/isisd=yes/' \
+    /etc/frr/daemons
 
-# Step 3: Install base routing tools
-RUN apt-get update \
- && apt-get install -y --no-install-recommends iproute2 iputils-ping curl ca-certificates \
- && rm -rf /var/lib/apt/lists/*
+# Prepare config directory
+RUN mkdir -p /etc/frr \
+    && touch /etc/frr/zebra.conf \
+    && touch /etc/frr/bgpd.conf \
+    && touch /etc/frr/ospfd.conf \
+    && touch /etc/frr/isisd.conf \
+    && chown -R frr:frr /etc/frr
 
-# Step 4: Install Quagga (provides zebra, bgpd, ospfd, isisd)
-RUN apt-get update \
- && apt-get install -y --no-install-recommends quagga \
- && rm -rf /var/lib/apt/lists/*
+# Copy configs and startup script
+COPY configs/ /etc/frr/
+RUN chown -R frr:frr /etc/frr
 
-# Step 5: Create Quagga configuration directory and prepare for configs
-RUN mkdir -p /etc/quagga \
- && touch /etc/quagga/zebra.conf \
- && touch /etc/quagga/bgpd.conf \
- && touch /etc/quagga/ospfd.conf \
- && touch /etc/quagga/isisd.conf \
- && chown -R quagga:quagga /etc/quagga
-
-# Step 6: Enable services and copy configuration files from build context
-COPY configs/ /etc/quagga/
-RUN chown -R quagga:quagga /etc/quagga
-
-# Step 7: Copy startup script
 COPY --chown=root:root start-frr.sh /usr/local/bin/start-frr.sh
 RUN chmod +x /usr/local/bin/start-frr.sh
 
