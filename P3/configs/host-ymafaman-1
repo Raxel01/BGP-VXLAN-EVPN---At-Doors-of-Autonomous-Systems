@@ -1,0 +1,8 @@
+# Host-ymafaman-1 network configuration 
+# Interface eth1 is connected to VTEP-ymafaman-1 (eth1) 
+# IP: 192.168.0.1/28 
+
+auto eth1
+iface eth1 inet static
+	address 192.168.0.1
+	netmask 255.255.255.240

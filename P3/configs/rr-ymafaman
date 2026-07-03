@@ -1,0 +1,59 @@
+# RR-ymafaman network configuration 
+# Interface eth0 is connected to VTEP-ymafaman-1 (eth0)
+# Interface eth1 is connected to VTEP-ymafaman-2 (eth1)
+# Interface eth2 is connected to VTEP-ymafaman-3 (eth2) 
+# lo : IP: 1.1.1.1
+# eth0 : IP: 10.0.12.1/30
+# eth1 : IP: 10.0.13.1/30
+# eth2 : IP: 10.0.14.1/30
+
+auto lo
+iface lo inet static
+	address 1.1.1.1
+	netmask 255.255.255.255
+
+auto eth0
+iface eth0 inet static
+	address 10.0.12.1
+	netmask 255.255.255.252
+
+auto eth1
+iface eth1 inet static
+	address 10.0.13.1
+	netmask 255.255.255.252
+
+auto eth2
+iface eth2 inet static
+	address 10.0.14.1
+	netmask 255.255.255.252
+	up printf '#!/bin/sh\n\
+	vtysh -c "configure terminal" \
+	-c "router ospf" \
+	-c "ospf router-id 1.1.1.1" \
+	-c "network 1.1.1.1/32 area 0" \
+	-c "network 10.0.12.0/30 area 0" \
+	-c "network 10.0.13.0/30 area 0" \
+	-c "network 10.0.14.0/30 area 0" \
+	-c "end" \
+	-c "write" \
+	\n\
+	vtysh -c "configure terminal" \
+	-c "router bgp 3334" \
+	-c "bgp router-id 1.1.1.1" \
+	-c "neighbor 2.2.2.2 remote-as 3334" \
+	-c "neighbor 2.2.2.2 update-source lo" \
+	-c "neighbor 3.3.3.3 remote-as 3334" \
+	-c "neighbor 3.3.3.3 update-source lo" \
+	-c "neighbor 4.4.4.4 remote-as 3334" \
+	-c "neighbor 4.4.4.4 update-source lo" \
+	-c "address-family l2vpn evpn" \
+	-c "neighbor 2.2.2.2 activate" \
+	-c "neighbor 2.2.2.2 route-reflector-client" \
+	-c "neighbor 3.3.3.3 activate" \
+	-c "neighbor 3.3.3.3 route-reflector-client" \
+	-c "neighbor 4.4.4.4 activate" \
+	-c "neighbor 4.4.4.4 route-reflector-client" \
+	-c "exit-address-family" \
+	-c "end" \
+	-c "write"\n' > /tmp/ospf-init.sh
+	up chmod +x /tmp/ospf-init.sh

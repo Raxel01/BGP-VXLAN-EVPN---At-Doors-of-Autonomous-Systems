@@ -1,0 +1,43 @@
+# VTEP-1 network configuration 
+# Interface eth0 is connected to rr-ymafaman (eth0)
+# Interface eth1 is connected to host-ymafaman-1 (eth1) 
+# lo : IP: 2.2.2.2
+# eth0 : IP: 10.0.12.2/30
+
+auto lo
+iface lo inet static
+	address 2.2.2.2
+	netmask 255.255.255.255
+
+auto eth0
+iface eth0 inet static
+	address 10.0.12.2
+	netmask 255.255.255.252
+	up ip link add br0 type bridge
+	up ip link set br0 up
+	up ip link set eth1 master br0
+	up ip link set eth1 up
+	up ip link add vxlan10 type vxlan id 0 local 2.2.2.2 dstport 4789 nolearning
+	up ip link set vxlan10 master br0
+	up ip link set vxlan10 up
+	up printf '#!/bin/sh\n\
+	vtysh -c "configure terminal" \
+	-c "router ospf" \
+	-c "ospf router-id 2.2.2.2" \
+	-c "network 2.2.2.2/32 area 0" \
+	-c "network 10.0.12.0/30 area 0" \
+	-c "end" \
+	-c "write" \
+	\n \
+	vtysh -c "configure terminal" \
+	-c "router bgp 3334" \
+	-c "bgp router-id 2.2.2.2" \
+	-c "neighbor 1.1.1.1 remote-as 3334" \
+	-c "neighbor 1.1.1.1 update-source lo" \
+	-c "address-family l2vpn evpn" \
+	-c "neighbor 1.1.1.1 activate" \
+	-c "advertise-all-vni" \
+	-c "exit-address-family" \
+	-c "end" \
+	-c "write"\n' > /tmp/ospf-init.sh
+	up chmod +x /tmp/ospf-init.sh
