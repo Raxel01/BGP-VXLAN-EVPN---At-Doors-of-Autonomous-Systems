@@ -13,13 +13,13 @@ auto eth2
 iface eth2 inet static
 	address 10.0.14.2
 	netmask 255.255.255.252
-	up ip link add br0 type bridge
-	up ip link set br0 up
-	up ip link set eth0 master br0
-	up ip link set eth0 up
-	up ip link add vxlan10 type vxlan id 0 local 4.4.4.4 dstport 4789 nolearning
-	up ip link set vxlan10 master br0
-	up ip link set vxlan10 up
+	up /sbin/ip link add br0 type bridge
+	up /sbin/ip link set br0 up
+	up /sbin/ip link set eth0 master br0
+	up /sbin/ip link set eth0 up
+	up /sbin/ip link add vxlan10 type vxlan id 10 local 4.4.4.4 dstport 4789 nolearning
+	up /sbin/ip link set vxlan10 master br0
+	up /sbin/ip link set vxlan10 up
 	up printf '#!/bin/sh\n\
 	vtysh -c "configure terminal" \
 	-c "router ospf" \
