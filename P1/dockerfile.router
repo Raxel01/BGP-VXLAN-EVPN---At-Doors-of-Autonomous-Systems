@@ -7,29 +7,12 @@ RUN apk add --no-cache \
     busybox \
     iproute2 \
     iputils \
-    bash
+    bash \
+    tini
 
-
-COPY ../P3/docker/router/scripts/p1_provision.sh /root/p1_provision.sh
+COPY /scripts/p1_provision.sh  /scripts/p1_provision.sh
     
-RUN chmod +x /root/p1_provision.sh
+RUN chmod +x /scripts/p1_provision.sh
     
 ENTRYPOINT ["/sbin/tini", "--"]
 
-# RUN mkdir -p /etc/frr \
-#     && touch /etc/frr/zebra.conf \
-#     && touch /etc/frr/bgpd.conf \
-#     && touch /etc/frr/ospfd.conf \
-#     && touch /etc/frr/isisd.conf \
-#     && chown -R frr:frr /etc/frr
-
-# COPY configs/ /etc/frr/
-
-# RUN chown -R frr:frr /etc/frr
-
-# COPY --chown=root:root start-frr.sh /usr/local/bin/start-frr.sh
-# RUN chmod +x /usr/local/bin/start-frr.sh
-
-
-
-# CMD ["/root/p1_provision.sh"]
