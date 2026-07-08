@@ -1,6 +1,7 @@
 FROM alpine:3.19
 
-# Install FRR + base tools (all in one layer, no apt mess)
+WORKDIR /root
+
 RUN apk add --no-cache \
     frr \
     busybox \
@@ -8,29 +9,27 @@ RUN apk add --no-cache \
     iputils \
     bash
 
-# Enable required daemons
-RUN sed -i \
-    -e 's/^zebra=no/zebra=yes/' \
-    -e 's/^bgpd=no/bgpd=yes/' \
-    -e 's/^ospfd=no/ospfd=yes/' \
-    -e 's/^isisd=no/isisd=yes/' \
-    /etc/frr/daemons
 
-# Prepare config directory
-RUN mkdir -p /etc/frr \
-    && touch /etc/frr/zebra.conf \
-    && touch /etc/frr/bgpd.conf \
-    && touch /etc/frr/ospfd.conf \
-    && touch /etc/frr/isisd.conf \
-    && chown -R frr:frr /etc/frr
+COPY ../P3/docker/router/scripts/p1_provision.sh /root/p1_provision.sh
+    
+RUN chmod +x /root/p1_provision.sh
+    
+ENTRYPOINT ["/sbin/tini", "--"]
 
-# Copy configs and startup script
-COPY configs/ /etc/frr/
-RUN chown -R frr:frr /etc/frr
+# RUN mkdir -p /etc/frr \
+#     && touch /etc/frr/zebra.conf \
+#     && touch /etc/frr/bgpd.conf \
+#     && touch /etc/frr/ospfd.conf \
+#     && touch /etc/frr/isisd.conf \
+#     && chown -R frr:frr /etc/frr
 
-COPY --chown=root:root start-frr.sh /usr/local/bin/start-frr.sh
-RUN chmod +x /usr/local/bin/start-frr.sh
+# COPY configs/ /etc/frr/
 
-WORKDIR /root
+# RUN chown -R frr:frr /etc/frr
 
-CMD ["/usr/local/bin/start-frr.sh"]
+# COPY --chown=root:root start-frr.sh /usr/local/bin/start-frr.sh
+# RUN chmod +x /usr/local/bin/start-frr.sh
+
+
+
+# CMD ["/root/p1_provision.sh"]
