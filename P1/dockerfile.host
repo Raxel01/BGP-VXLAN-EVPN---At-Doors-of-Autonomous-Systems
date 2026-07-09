@@ -9,4 +9,8 @@ RUN apk add --no-cache \
 
 WORKDIR /root
 
+COPY /scripts  /scripts
+    
+RUN chmod +x /scripts/* -R
+
 CMD ["/bin/bash"]
