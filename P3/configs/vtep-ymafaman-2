@@ -20,24 +20,3 @@ iface eth1 inet static
 	up /sbin/ip link add vxlan10 type vxlan id 10 local 3.3.3.3 dstport 4789 nolearning
 	up /sbin/ip link set vxlan10 master br0
 	up /sbin/ip link set vxlan10 up
-	up printf '#!/bin/sh\n\
-	vtysh -c "configure terminal" \
-	-c "router ospf" \
-	-c "ospf router-id 3.3.3.3" \
-	-c "network 3.3.3.3/32 area 0" \
-	-c "network 10.0.13.0/30 area 0" \
-	-c "end" \
-	-c "write" \
-	\n \
-	vtysh -c "configure terminal" \
-	-c "router bgp 3334" \
-	-c "bgp router-id 3.3.3.3" \
-	-c "neighbor 1.1.1.1 remote-as 3334" \
-	-c "neighbor 1.1.1.1 update-source lo" \
-	-c "address-family l2vpn evpn" \
-	-c "neighbor 1.1.1.1 activate" \
-	-c "advertise-all-vni" \
-	-c "exit-address-family" \
-	-c "end" \
-	-c "write"\n' > /tmp/ospf-init.sh
-	up chmod +x /tmp/ospf-init.sh

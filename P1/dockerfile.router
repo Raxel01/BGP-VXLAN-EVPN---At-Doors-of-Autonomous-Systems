@@ -8,11 +8,15 @@ RUN apk add --no-cache \
     iproute2 \
     iputils \
     bash \
-    tini
+    frr-openrc\
+    tcpdump \
+    vim \
+    busybox-extras\
+    tini 
 
-COPY /scripts/p1_provision.sh  /scripts/p1_provision.sh
+COPY /scripts  /scripts
     
-RUN chmod +x /scripts/p1_provision.sh
+RUN chmod +x /scripts/* -R
     
 ENTRYPOINT ["/sbin/tini", "--"]
 
